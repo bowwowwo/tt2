@@ -9,6 +9,7 @@ use Illuminate\View\Component;
 class EventCard extends Component
 {
     public $event;
+    
     public function __construct($event){
         $this->event = $event;
     }

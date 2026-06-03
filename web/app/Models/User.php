@@ -29,4 +29,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function isGuest(): bool{
+        return $this->role === 'guest';
+    }
+    public function isRegularUser() {
+        return $this->role === 'user';
+    }
 }
