@@ -7,6 +7,7 @@ use App\Models\Event;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
@@ -74,14 +75,46 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $collaboratorIds = array_values(array_filter(
+            $request->input('collaborator_user_ids', []),
+            fn ($id) => filled($id)
+        ));
+
+        $request->merge([
+            'collaborator_user_ids' => $collaboratorIds,
+        ]);
+
+        $validated = $request->validate(
+        [
             'schedule_id' => ['required', 'exists:schedules,id'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'start_time' => ['required', 'date'],
             'end_time' => ['nullable', 'date', 'after_or_equal:start_time'],
             'collaboration' => ['nullable', 'boolean'],
-        ]);
+
+            'collaborator_user_ids' => [
+                $request->boolean('collaboration') ? 'required' : 'nullable',
+                'array',
+            ],
+
+            'collaborator_user_ids.*' => [
+                'required',
+                'integer',
+                'distinct',
+                'exists:users,id',
+                Rule::notIn([Auth::id()]),
+            ],
+        ],  // * errors 
+        [
+            'collaborator_user_ids.required' => 'Must add at least one collaborator.',
+            'collaborator_user_ids.*.required' => 'Please enter an ID for each collaborator.',
+            'collaborator_user_ids.*.integer' => 'Each collaborator ID must be a number.',
+            'collaborator_user_ids.*.distinct' => 'You added the same collaborator more than once.',
+            'collaborator_user_ids.*.exists' => 'No user was found with one of the collaborator IDs.',
+            'collaborator_user_ids.*.not_in' => 'You cannot add yourself as a collaborator.',
+        ]
+    );
 
         $event = Event::create([
             'schedule_id' => $validated['schedule_id'],
@@ -99,12 +132,14 @@ class EventController extends Controller
             'status' => 'accepted',
         ]);
 
-        if ($request->boolean('collaboration') && !empty($validated['collaborator_user_id'])) {
-            $event->participants()->create([
-                'user_id' => $validated['collaborator_user_id'],
-                'role' => 'participant',
-                'status' => 'pending',
-            ]);
+        if ($request->boolean('collaboration')) {
+            foreach ($validated['collaborator_user_ids'] as $collaboratorUserId) {
+                $event->participants()->create([
+                    'user_id' => $collaboratorUserId,
+                    'role' => 'participant',
+                    'status' => 'pending',
+                ]);
+            }
         }
 
         return redirect()

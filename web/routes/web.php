@@ -3,10 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\ScheduleController;
 
 Route::get('/', function () {
     return view('mainpage.landing');
 });
+
+Route::get('/schedules', [ScheduleController::class, 'index'])
+    ->middleware('auth')
+    ->name('schedules.index');
 
 Route::resource('events', EventController::class)->middleware('auth');
 

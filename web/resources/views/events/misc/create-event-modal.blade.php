@@ -28,7 +28,7 @@
                 <div class="modal-body">
                     @if($errors->any())
                         <div class="alert alert-danger">
-                            <ul class="mb-0">
+                            <ul class="mb-0 list-unstyled">
                                 @foreach($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
@@ -191,7 +191,7 @@
                         class="btn btn-outline-dark btn-sm mt-2"
                         id="addCollaborator"
                     >
-                        + Add collaborator
+                        Add collaborator
                     </button>
                 </div>
                 

@@ -79,7 +79,7 @@
                     Upcoming Events
                 </a>
 
-                <a href="#" class="btn btn-outline-dark text-start">
+                <a href="{{ route('schedules.index') }}" class="btn btn-outline-dark text-start">
                     Schedules
                 </a>
 
