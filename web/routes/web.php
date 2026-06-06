@@ -39,3 +39,9 @@ Route::get('/events', [EventController::class, 'index'])->name('events.index');
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
+
+    use App\Http\Controllers\ProfileController;
+
+Route::get('/profile', [ProfileController::class, 'show'])
+    ->middleware('auth')
+    ->name('profile.show');

@@ -64,4 +64,17 @@
             No
         @endif
     </div>
+
+    @auth
+        @if($event->created_by === auth()->id())
+            <div class="mt-3">
+                <a
+                    href="{{ route('events.edit', $event) }}"
+                    class="btn btn-sm btn-outline-dark"
+                >
+                    Edit event
+                </a>
+            </div>
+        @endif
+    @endauth
 </div>

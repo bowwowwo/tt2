@@ -57,17 +57,23 @@
             </div>
 
             {{-- Create event button --}}
-            <div class="pt-3">
-                <button
-                    type="button"
+            @if($selectedScheduleId)
+                <a
+                    href="{{ route('events.create', ['schedule' => $selectedScheduleId]) }}"
                     class="btn btn-dark"
-                    data-bs-toggle="modal"
-                    data-bs-target="#createEventModal"
-                    @disabled(!$selectedScheduleId)
                 >
                     Create event
-                </button>
-            </div>
+                </a>
+            @else
+                <a
+                    href="#"
+                    class="btn btn-dark disabled"
+                    aria-disabled="true"
+                    tabindex="-1"
+                >
+                    Create event
+                </a>
+            @endif
         </div>
 
         <div class="d-flex flex-wrap gap-3 align-content-start pt-4">
@@ -82,9 +88,4 @@
             @endforelse
         </div>
     </div>
-
-    @include('events.misc.create-event-modal', [
-        'selectedScheduleId' => $selectedScheduleId
-    ])
-
 </x-layout>

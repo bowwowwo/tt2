@@ -71,10 +71,6 @@
         <div class="d-flex flex-column gap-2">
 
             @auth
-                <a href="{{ route('landing') }}" class="btn btn-outline-dark text-start">
-                    Main page
-                </a>
-
                 <a href="{{ route('events.index') }}" class="btn btn-outline-dark text-start">
                     Upcoming Events
                 </a>
@@ -111,8 +107,8 @@
         <div class="mt-auto border-top pt-3 d-flex flex-column gap-2">
 
             @auth
-                <a href="#" class="btn btn-outline-dark text-start">
-                    Profile
+                <a href="{{ route('profile.show') }}" class="btn btn-outline-dark text-start">
+                    View Profile
                 </a>
             @endauth
 

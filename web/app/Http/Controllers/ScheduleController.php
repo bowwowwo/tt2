@@ -67,7 +67,7 @@ class ScheduleController extends Controller
             });
         }
 
-        return view('schedules', compact(
+        return view('schedules.schedules', compact(
             'schedules',
             'selectedSchedule',
             'selectedScheduleId',

@@ -1,5 +1,5 @@
 <x-layout title="Login">
-    <div class="container p-3">
+    <div class="container py-2 px-4">
         <h1 class="mb-4">Login</h1>
 
         @if ($errors->has('email'))

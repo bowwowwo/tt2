@@ -117,25 +117,134 @@
                                     </span>
                                 </div>
 
-                                @forelse($dayEvents as $event)
-                                    <div class="mb-2 p-2 rounded border border-dark bg-info-subtle small">
-                                        <div class="fw-semibold">
-                                            {{ $event->title }}
-                                        </div>
+                                {{-- days --}}
 
-                                        <div>
-                                            {{ $event->start_time->format('g:i a') }}
-                                        </div>
-
-                                        @if($event->collaboration)
-                                            <div class="fst-italic">
-                                                Collaboration
+                                @if($dayEvents->count())
+                                    {{-- Show event previews in the calendar cell --}}
+                                    @foreach($dayEvents->take(2) as $event)
+                                        <div class="mb-2 p-2 rounded border border-dark bg-info-subtle small">
+                                            <div class="fw-semibold">
+                                                {{ $event->title }}
                                             </div>
-                                        @endif
+
+                                            <div>
+                                                {{ $event->start_time->format('g:i a') }}
+                                            </div>
+
+                                            @if($event->collaboration)
+                                                <div class="fst-italic">
+                                                    Collaboration
+                                                </div>
+                                            @endif
+
+                                            @if($event->created_by === auth()->id())
+                                                <div class="mt-2">
+                                                    <a
+                                                        href="{{ route('events.edit', $event) }}"
+                                                        class="btn btn-sm btn-outline-dark"
+                                                    >
+                                                        Edit
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+
+                                    {{-- If multiple events, show modal button --}}
+                                    @if($dayEvents->count() > 1)
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-dark w-100"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#eventsModal{{ $day->format('Ymd') }}"
+                                        >
+                                            View all {{ $dayEvents->count() }} events
+                                        </button>
+                                    @endif
+
+                                    {{-- Day events modal --}}
+                                    <div
+                                        class="modal fade"
+                                        id="eventsModal{{ $day->format('Ymd') }}"
+                                        tabindex="-1"
+                                        aria-labelledby="eventsModalLabel{{ $day->format('Ymd') }}"
+                                        aria-hidden="true"
+                                    >
+                                        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+                                            <div class="modal-content border border-2 border-dark">
+                                                <div class="modal-header border-dark">
+                                                    <h5
+                                                        class="modal-title"
+                                                        id="eventsModalLabel{{ $day->format('Ymd') }}"
+                                                    >
+                                                        Events for {{ $day->format('F j, Y') }}
+                                                    </h5>
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn-close"
+                                                        data-bs-dismiss="modal"
+                                                        aria-label="Close"
+                                                    ></button>
+                                                </div>
+
+                                                <div class="modal-body">
+                                                    @foreach($dayEvents as $event)
+                                                        <div class="border border-dark rounded p-3 mb-3 bg-info-subtle">
+                                                            <div class="fw-bold fs-5">
+                                                                {{ $event->title }}
+                                                            </div>
+
+                                                            <div class="small">
+                                                                Start:
+                                                                {{ $event->start_time->format('g:i a') }}
+                                                            </div>
+
+                                                            @if($event->end_time)
+                                                                <div class="small">
+                                                                    End:
+                                                                    {{ $event->end_time->format('g:i a') }}
+                                                                </div>
+                                                            @endif
+
+                                                            @if($event->description)
+                                                                <div class="mt-2">
+                                                                    {{ $event->description }}
+                                                                </div>
+                                                            @endif
+
+                                                            <div class="small fst-italic mt-2">
+                                                                Collaboration:
+                                                                {{ $event->collaboration ? 'Yes' : 'No' }}
+                                                            </div>
+
+                                                            @if($event->created_by === auth()->id())
+                                                                <div class="mt-3">
+                                                                    <a
+                                                                        href="{{ route('events.edit', $event) }}"
+                                                                        class="btn btn-sm btn-outline-dark"
+                                                                    >
+                                                                        Edit event
+                                                                    </a>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                <div class="modal-footer border-dark">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-outline-secondary"
+                                                        data-bs-dismiss="modal"
+                                                    >
+                                                        Close
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                @empty
-                                    {{-- No events --}}
-                                @endforelse
+                                @endif
                             </div>
                         @endforeach
                     </div>
