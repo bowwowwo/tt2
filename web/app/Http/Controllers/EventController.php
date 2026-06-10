@@ -25,10 +25,7 @@ class EventController extends Controller
         $userId = Auth::id();
 
         $schedules = Schedule::query()
-            ->where(function ($query) use ($userId) {
-                $query->where('owner_id', $userId)
-                    ->orWhere('is_shared', true);
-            })
+            ->visibleTo($userId)
             ->orderBy('name')
             ->get();
 
@@ -48,7 +45,10 @@ class EventController extends Controller
                 ->where('start_time', '>=', now())
                 ->where(function ($query) use ($userId) {
                     $query->where('created_by', $userId)
-                        ->orWhereHas('participants', fn ($q) => $q->where('user_id', $userId));
+                        ->orWhereHas('participants', function ($q) use ($userId) {
+                            $q->where('user_id', $userId)
+                                ->where('status', 'accepted');
+                        });
                 })
                 ->with(['participants.user'])
                 ->orderBy('start_time')
@@ -71,10 +71,7 @@ class EventController extends Controller
         $userId = Auth::id();
 
         $schedules = Schedule::query()
-            ->where(function ($query) use ($userId) {
-                $query->where('owner_id', $userId)
-                    ->orWhere('is_shared', true);
-            })
+            ->visibleTo($userId)
             ->orderBy('name')
             ->get();
 
@@ -191,15 +188,15 @@ class EventController extends Controller
 
         abort_unless(
             $event->created_by === $userId ||
-            $event->participants()->where('user_id', $userId)->exists(),
+            $event->participants()
+                ->where('user_id', $userId)
+                ->where('status', 'accepted')
+                ->exists(),
             403
         );
 
         $schedules = Schedule::query()
-            ->where(function ($query) use ($userId) {
-                $query->where('owner_id', $userId)
-                    ->orWhere('is_shared', true);
-            })
+            ->visibleTo($userId)
             ->orderBy('name')
             ->get();
 
@@ -278,17 +275,33 @@ class EventController extends Controller
                 ]
             );
 
+            $newCollaboratorIds = $request->boolean('collaboration')
+                ? collect($validated['collaborator_user_ids'])->map(fn ($id) => (int) $id)
+                : collect();
+
+            $existingParticipants = $event->participants()
+                ->where('user_id', '!=', $userId)
+                ->get()
+                ->keyBy('user_id');
+
             $event->participants()
                 ->where('user_id', '!=', $userId)
+                ->whereNotIn('user_id', $newCollaboratorIds)
                 ->delete();
 
             if ($request->boolean('collaboration')) {
-                foreach ($validated['collaborator_user_ids'] as $collaboratorUserId) {
-                    $event->participants()->create([
-                        'user_id' => $collaboratorUserId,
-                        'role' => 'participant',
-                        'status' => 'pending',
-                    ]);
+                foreach ($newCollaboratorIds as $collaboratorUserId) {
+                    $existingStatus = $existingParticipants[$collaboratorUserId]->status ?? 'pending';
+
+                    $event->participants()->updateOrCreate(
+                        [
+                            'user_id' => $collaboratorUserId,
+                        ],
+                        [
+                            'role' => 'participant',
+                            'status' => $existingStatus,
+                        ]
+                    );
                 }
             }
         });

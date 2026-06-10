@@ -36,4 +36,29 @@ class User extends Authenticatable
     public function isRegularUser() {
         return $this->role === 'user';
     }
+
+    public function schedules()
+    {
+        return $this->hasMany(Schedule::class, 'owner_id');
+    }
+
+    public function createdEvents()
+    {
+        return $this->hasMany(Event::class, 'created_by');
+    }
+
+    public function eventParticipants()
+    {
+        return $this->hasMany(EventParticipant::class);
+    }
+
+    public function scheduleParticipants()
+    {
+        return $this->hasMany(ScheduleParticipant::class);
+    }
+
+    public function reminders()
+    {
+        return $this->hasMany(Reminder::class, 'created_by');
+    }
 }

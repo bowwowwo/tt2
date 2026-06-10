@@ -70,13 +70,17 @@
         {{-- //* top--}}
         <div class="d-flex flex-column gap-2">
 
-            @auth
+            @auth   
                 <a href="{{ route('events.index') }}" class="btn btn-outline-dark text-start">
                     Upcoming Events
                 </a>
 
                 <a href="{{ route('schedules.index') }}" class="btn btn-outline-dark text-start">
                     Schedules
+                </a>
+
+                <a href="{{ route('invites.index') }}" class="btn btn-outline-dark text-start">
+                    Invites
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}">
@@ -121,6 +125,7 @@
                 >
                     Switch Language
                 </button>
+
 
                 <ul class="dropdown-menu w-100">
                     <li>

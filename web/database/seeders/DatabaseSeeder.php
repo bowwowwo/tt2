@@ -9,6 +9,7 @@ use App\Models\EventParticipant;
 use App\Models\Reminder;
 use App\Models\Schedule;
 use App\Models\User;
+use App\Models\ScheduleParticipant;
 
 
 class DatabaseSeeder extends Seeder
@@ -45,6 +46,29 @@ class DatabaseSeeder extends Seeder
             'owner_id' => $user2->id,
             'name' => 'Schedule2',
             'is_shared' => false,
+        ]);
+
+        // --- schedule participants ---
+
+        ScheduleParticipant::create([
+            'schedule_id' => $schedule1->id,
+            'user_id' => $user1->id,
+            'role' => 'owner',
+            'status' => 'accepted',
+        ]);
+
+        ScheduleParticipant::create([
+            'schedule_id' => $schedule1->id,
+            'user_id' => $user2->id,
+            'role' => 'participant',
+            'status' => 'accepted',
+        ]);
+
+        ScheduleParticipant::create([
+            'schedule_id' => $schedule1->id,
+            'user_id' => $user3->id,
+            'role' => 'participant',
+            'status' => 'accepted',
         ]);
 
         // --- Events ---

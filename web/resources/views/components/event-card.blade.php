@@ -52,14 +52,19 @@
 
     <hr class="border-dark opacity-100 mt-3 mb-2">
 
+    @php
+        $acceptedCollaborators = $event->relationLoaded('participants')
+            ? $event->participants
+                ->where('status', 'accepted')
+                ->where('user_id', '!=', $event->created_by)
+            : collect();
+    @endphp
+
     <div class="small fst-italic">
         Collaboration:
-        @if ($event->collaboration)
-            @if ($event->relationLoaded('participants') && $event->participants->count())
-                {{ $event->participants->pluck('user.name')->filter()->join(', ') }}
-            @else
-                Yes
-            @endif
+
+        @if($acceptedCollaborators->count())
+            {{ $acceptedCollaborators->pluck('user.name')->filter()->join(', ') }}
         @else
             No
         @endif

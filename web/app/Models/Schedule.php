@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\Event;
 use Illuminate\Database\Eloquent\Model;
 
 class Schedule extends Model
@@ -28,24 +26,19 @@ class Schedule extends Model
         return $this->hasMany(Event::class);
     }
 
-    //relations in case i need them for " who owns it"
-    public function schedules()
+    public function participants()
     {
-        return $this->hasMany(\App\Models\Schedule::class, 'owner_id');
+        return $this->hasMany(ScheduleParticipant::class);
     }
 
-    public function createdEvents()
+    public function scopeVisibleTo($query, $userId)
     {
-        return $this->hasMany(\App\Models\Event::class, 'created_by');
-    }
-
-    public function eventParticipants()
-    {
-        return $this->hasMany(\App\Models\EventParticipant::class);
-    }
-
-    public function reminders()
-    {
-        return $this->hasMany(\App\Models\Reminder::class, 'created_by');
+        return $query->where(function ($query) use ($userId) {
+            $query->where('owner_id', $userId)
+                ->orWhereHas('participants', function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                        ->where('status', 'accepted');
+                });
+        });
     }
 }

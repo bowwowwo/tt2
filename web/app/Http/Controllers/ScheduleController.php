@@ -7,6 +7,8 @@ use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ScheduleController extends Controller
 {
@@ -14,13 +16,10 @@ class ScheduleController extends Controller
     {
         $userId = Auth::id();
 
-        $schedules = Schedule::query()
-            ->where(function ($query) use ($userId) {
-                $query->where('owner_id', $userId)
-                    ->orWhere('is_shared', true);
-            })
-            ->orderBy('name')
-            ->get();
+    $schedules = Schedule::query()
+        ->visibleTo($userId)
+        ->orderBy('name')
+        ->get();
 
         $selectedScheduleId = $request->integer('schedule');
 
@@ -75,5 +74,80 @@ class ScheduleController extends Controller
             'calendarDays',
             'eventsByDate'
         ));
+    }
+
+    public function create()
+    {
+        return view('schedules.create');
+    }
+
+    public function store(Request $request)
+    {
+        $collaboratorIds = array_values(array_filter(
+            $request->input('collaborator_user_ids', []),
+            fn ($id) => filled($id)
+        ));
+
+        $request->merge([
+            'collaborator_user_ids' => $collaboratorIds,
+        ]);
+
+        $validated = $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'collaboration' => ['nullable', 'boolean'],
+
+                'collaborator_user_ids' => [
+                    $request->boolean('collaboration') ? 'required' : 'nullable',
+                    'array',
+                ],
+
+                'collaborator_user_ids.*' => [
+                    'required',
+                    'integer',
+                    'distinct',
+                    'exists:users,id',
+                    Rule::notIn([Auth::id()]),
+                ],
+            ],
+            [
+                'collaborator_user_ids.required' => 'Must add at least one collaborator.',
+                'collaborator_user_ids.*.required' => 'Please enter an ID for each collaborator.',
+                'collaborator_user_ids.*.integer' => 'Each collaborator ID must be a number.',
+                'collaborator_user_ids.*.distinct' => 'You added the same collaborator more than once.',
+                'collaborator_user_ids.*.exists' => 'No user was found with one of the collaborator IDs.',
+                'collaborator_user_ids.*.not_in' => 'You cannot add yourself as a collaborator.',
+            ]
+        );
+
+        $schedule = DB::transaction(function () use ($validated, $request) {
+            $schedule = Schedule::create([
+                'owner_id' => Auth::id(),
+                'name' => $validated['name'],
+                'is_shared' => $request->boolean('collaboration'),
+            ]);
+
+            $schedule->participants()->create([
+                'user_id' => Auth::id(),
+                'role' => 'owner',
+                'status' => 'accepted',
+            ]);
+
+            if ($request->boolean('collaboration')) {
+                foreach ($validated['collaborator_user_ids'] as $collaboratorUserId) {
+                    $schedule->participants()->create([
+                        'user_id' => $collaboratorUserId,
+                        'role' => 'participant',
+                        'status' => 'pending',
+                    ]);
+                }
+            }
+
+            return $schedule;
+        });
+
+        return redirect()
+            ->route('schedules.index', ['schedule' => $schedule->id])
+            ->with('success', 'Schedule created successfully.');
     }
 }

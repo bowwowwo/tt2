@@ -16,6 +16,21 @@
                         {{ $selectedSchedule?->name ?? 'Select schedule' }}
                     </button>
 
+                    {{-- add schedule--}}
+                    <a
+                        href="{{ route('schedules.create') }}"
+                        class="btn btn-dark pt-2"
+                    >
+                        Add Schedule
+                    </a>
+
+                    <a
+                        href="{{ route('events.create', ['schedule' => $selectedScheduleId]) }}"
+                        class="btn btn-dark"
+                    >
+                        Create event
+                    </a>
+
                     <ul class="dropdown-menu">
                         @forelse($schedules as $schedule)
                             <li>

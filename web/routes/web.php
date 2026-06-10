@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\InviteController;
 
 Route::get('/', function () {
     return view('mainpage.landing');
@@ -45,3 +46,29 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::get('/profile', [ProfileController::class, 'show'])
     ->middleware('auth')
     ->name('profile.show');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/schedules/create', [ScheduleController::class, 'create'])
+        ->name('schedules.create');
+});
+
+Route::post('/schedules', [ScheduleController::class, 'store'])
+    ->name('schedules.store');
+
+//invites
+Route::middleware('auth')->group(function () {
+    Route::get('/invites', [InviteController::class, 'index'])
+        ->name('invites.index');
+
+    Route::patch('/invites/events/{participant}/accept', [InviteController::class, 'acceptEvent'])
+        ->name('invites.events.accept');
+
+    Route::patch('/invites/events/{participant}/decline', [InviteController::class, 'declineEvent'])
+        ->name('invites.events.decline');
+
+    Route::patch('/invites/schedules/{participant}/accept', [InviteController::class, 'acceptSchedule'])
+        ->name('invites.schedules.accept');
+
+    Route::patch('/invites/schedules/{participant}/decline', [InviteController::class, 'declineSchedule'])
+        ->name('invites.schedules.decline');
+});
