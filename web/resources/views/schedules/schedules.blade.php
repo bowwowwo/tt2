@@ -31,6 +31,16 @@
                         Create event
                     </a>
 
+                    <button
+                        type="button"
+                        class="btn btn-outline-dark pt-2"
+                        data-bs-toggle="modal"
+                        data-bs-target="#scheduleCollaboratorsModal"
+                        @disabled(!$selectedSchedule)
+                    >
+                        See current collaborators
+                    </button>
+
                     <ul class="dropdown-menu">
                         @forelse($schedules as $schedule)
                             <li>
@@ -267,4 +277,115 @@
             </div>
         @endif
     </div>
+
+{{-- Schedule collaborators modal --}}
+<div
+    class="modal fade"
+    id="scheduleCollaboratorsModal"
+    tabindex="-1"
+    aria-labelledby="scheduleCollaboratorsModalLabel"
+    aria-hidden="true"
+>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border border-2 border-dark">
+            <div class="modal-header border-dark">
+                <h5 class="modal-title" id="scheduleCollaboratorsModalLabel">
+                    Collaborators for {{ $selectedSchedule?->name ?? 'Schedule' }}
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close"
+                ></button>
+            </div>
+
+            <div class="modal-body">
+                @if($selectedSchedule)
+                    <div class="border border-dark rounded p-3 mb-3 bg-light">
+                        <div class="fw-bold">
+                            Owner
+                        </div>
+
+                        <div>
+                            {{ $selectedSchedule->owner?->name ?? 'Unknown owner' }}
+                        </div>
+
+                        <div class="small text-muted">
+                            User ID: {{ $selectedSchedule->owner_id }}
+                        </div>
+
+                        <div class="small text-muted">
+                            Email: {{ $selectedSchedule->owner?->email ?? 'No email' }}
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3">
+                        Collaborators
+                    </h6>
+
+                    @php
+                        $collaborators = $selectedSchedule->participants
+                            ->where('user_id', '!=', $selectedSchedule->owner_id)
+                            ->where('status', 'accepted');
+                    @endphp
+
+                    @forelse($collaborators as $participant)
+                        <div class="border border-dark rounded p-3 mb-3">
+                            <div class="fw-semibold">
+                                {{ $participant->user?->name ?? 'Unknown user' }}
+                            </div>
+
+                            <div class="small">
+                                User ID: {{ $participant->user_id }}
+                            </div>
+
+                            <div class="small">
+                                Email: {{ $participant->user?->email ?? 'No email' }}
+                            </div>
+
+                            <div class="small">
+                                Role: {{ ucfirst($participant->role) }}
+                            </div>
+
+                            <div class="small">
+                                Status:
+                                @if($participant->status === 'accepted')
+                                    <span class="badge bg-success">Accepted</span>
+                                @elseif($participant->status === 'pending')
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                @elseif($participant->status === 'declined')
+                                    <span class="badge bg-danger">Declined</span>
+                                @else
+                                    <span class="badge bg-secondary">
+                                        {{ ucfirst($participant->status) }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-muted mb-0">
+                            This schedule has no collaborators.
+                        </p>
+                    @endforelse
+                @else
+                    <p class="text-muted mb-0">
+                        No schedule selected.
+                    </p>
+                @endif
+            </div>
+
+            <div class="modal-footer border-dark">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </x-layout>

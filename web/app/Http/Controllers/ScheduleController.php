@@ -27,7 +27,17 @@ class ScheduleController extends Controller
             $selectedScheduleId = $schedules->first()?->id;
         }
 
+        $selectedScheduleId = $request->integer('schedule');
+
+        if (!$selectedScheduleId || !$schedules->contains('id', $selectedScheduleId)) {
+            $selectedScheduleId = $schedules->first()?->id;
+        }
+
         $selectedSchedule = $schedules->firstWhere('id', $selectedScheduleId);
+
+        if ($selectedSchedule) {
+            $selectedSchedule->load(['participants.user', 'owner']);
+        }
 
         try {
             $month = Carbon::createFromFormat('Y-m', $request->query('month', now()->format('Y-m')))

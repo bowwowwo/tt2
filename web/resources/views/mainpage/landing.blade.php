@@ -2,7 +2,7 @@
 
     <section class="bg-dark text-white py-5" > {{-- //*  bg-dark --}}
         <div class="container-fluid">
-            <div class="row align-items-center min-vh-100">
+            <div class="row mx-4 align-items-center min-vh-100">
                 <div class="col-lg-6">
 
                     <h1 class="display-3 fw-bold mb-4">
@@ -28,7 +28,7 @@
 
                 <div class="col-lg-6 text-center mt-5 mt-lg-0">
                     <img
-                        src="" {{--idk--}}
+                        src="{{ asset('images/preview-2.png') }}"
                         class="img-fluid rounded shadow-lg"
                         alt="Product Preview"
                     >
